@@ -12,6 +12,21 @@ jobs:
       - name: Ambil kode
         uses: actions/checkout@v4
 
+      - name: Susun ulang file ke folder
+        run: |
+          mkdir -p lib/pages lib/components lib/models lib/services lib/data assets/images launcher
+          mv_if() { [ -f "$1" ] && mv "$1" "$2/"; true; }
+          mv_if main.dart lib
+          mv_if theme.dart lib
+          for f in splash_page login_page home_page beranda_tab kategori_page quiz_page hasil_page pembahasan_page profil_page riwayat_tab tentang_sekolah_page; do mv_if $f.dart lib/pages; done
+          for f in header_bar tombol_utama opsi_jawaban timer_kuis kartu_kategori kartu_nilai; do mv_if $f.dart lib/components; done
+          for f in user_model soal_model kategori_model hasil_model; do mv_if $f.dart lib/models; done
+          for f in auth_service quiz_service; do mv_if $f.dart lib/services; done
+          mv_if bank_soal.dart lib/data
+          for f in logo_sekolah school_scene trophy; do mv_if $f.png assets/images; done
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do mv_if ic_launcher_$d.png launcher; done
+          find lib assets launcher -type f | sort
+
       - name: Pasang Java
         uses: actions/setup-java@v4
         with:
@@ -30,6 +45,11 @@ jobs:
           rm -rf android
           cp -r /tmp/scaffold/android ./android
           sed -i 's/android:label="[^"]*"/android:label="QuizLearn"/' android/app/src/main/AndroidManifest.xml
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            if [ -d "android/app/src/main/res/mipmap-$d" ] && [ -f "launcher/ic_launcher_$d.png" ]; then
+              cp "launcher/ic_launcher_$d.png" "android/app/src/main/res/mipmap-$d/ic_launcher.png"
+            fi
+          done
 
       - name: Ambil dependensi
         run: flutter pub get
