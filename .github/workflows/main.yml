@@ -30,11 +30,6 @@ jobs:
           rm -rf android
           cp -r /tmp/scaffold/android ./android
           sed -i 's/android:label="[^"]*"/android:label="QuizLearn"/' android/app/src/main/AndroidManifest.xml
-          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
-            if [ -d "android/app/src/main/res/mipmap-$d" ]; then
-              cp "launcher/ic_launcher_$d.png" "android/app/src/main/res/mipmap-$d/ic_launcher.png"
-            fi
-          done
 
       - name: Ambil dependensi
         run: flutter pub get
