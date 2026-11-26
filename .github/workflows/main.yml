@@ -1,0 +1,49 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Pasang Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Pasang Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Buat folder android (otomatis)
+        run: |
+          flutter create --platforms=android --project-name quizlearn --org id.sch.cbi /tmp/scaffold
+          rm -rf android
+          cp -r /tmp/scaffold/android ./android
+          sed -i 's/android:label="[^"]*"/android:label="QuizLearn"/' android/app/src/main/AndroidManifest.xml
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            if [ -d "android/app/src/main/res/mipmap-$d" ]; then
+              cp "launcher/ic_launcher_$d.png" "android/app/src/main/res/mipmap-$d/ic_launcher.png"
+            fi
+          done
+
+      - name: Ambil dependensi
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Simpan APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuizLearn-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
